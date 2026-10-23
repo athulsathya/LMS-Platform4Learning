@@ -221,7 +221,7 @@ function Navbar() {
                   );
                 })}
 
-                {isSignedIn ? (
+                {!isSignedIn ? (
                   <button
                     type="button"
                     onClick={() => {

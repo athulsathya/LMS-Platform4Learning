@@ -6,7 +6,7 @@ import T3 from "../assets/T3.png"
 const testimonials = [
 {
 id: 1,
-name: "Maya Singh",
+name: "Maya Singh", 
 role: "Frontend Learner",
 message:
 "The React Masterclass helped me land my first internship. Projects were practical, and the instructor explained complex topics simply.",

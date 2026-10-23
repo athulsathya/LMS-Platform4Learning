@@ -63,11 +63,12 @@ export const animationDelays = {
 };
 
 // Custom CSS styles as string (for the style jsx block)
+
 export const customStyles = `
-  @import url("https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&display=swap");
+  @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 
   .font-cursive {
-    font-family: "Dancing Script", cursive;
+    font-family: "Inter", sans-serif;
   }
 
   /* Fade in */
@@ -161,14 +162,11 @@ export const customStyles = `
     .glow-icon {
       width: 22px !important;
       height: 22px !important;
-
-
     }
   }
-    
 
   .font-cursive {
-    font-family: "Dancing Script", cursive;
+    font-family: "Inter", sans-serif;
   }
 
   /* Fade in */
@@ -277,8 +275,9 @@ export const customStyles = `
   .animate-fadeIn {
     animation: fadeIn 0.3s ease-out;
   }
-
 `;
+
+
 
 // src/assets/dummyStyles.js
 export const aboutUsStyles = {
