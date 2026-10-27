@@ -53,7 +53,7 @@ function HomeCourse() {
       return;
     }
 
-    navigate(`/courses/${id}`);
+    navigate(`/course/${id}`);
   };
 
   // Browse all courses
