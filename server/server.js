@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import { clerkMiddleware } from "@clerk/express";
 import connectDb from "./config/db.js";
 import courseRouter from "./routes/courseRouter.js";
+import bookingRouter from "./routes/bookingRouter.js";
 
 const app = express();
 const port = 4000;
@@ -22,6 +23,7 @@ app.use("/uploads", express.static("uploads"));
 
 // ROUTE
 app.use("/api/course", courseRouter);
+app.use("/api/booking", bookingRouter);
 
 // APP PORT AND LISTEN
 app.get("/", (req, res) => {
