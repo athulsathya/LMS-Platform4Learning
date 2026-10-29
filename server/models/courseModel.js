@@ -2,9 +2,9 @@ import mongoose from "mongoose";
 
 const chapterSchema = new mongoose.Schema(
   {
-    name: { type: string, required: true },
+    name: { type: String, required: true },
     topic: {
-      type: string,
+      type: String,
       required: true,
     },
     duration: {
@@ -28,6 +28,7 @@ const lectureSchema = new mongoose.Schema(
       hours: { type: Number, default: 0 },
       minutes: { type: Number, default: 0 },
     },
+    totalMinutes: { type: Number, default: 0 },
     chapters: [chapterSchema],
   },
   { _id: true },
@@ -121,5 +122,5 @@ courseSchema.pre("save", async function () {
 });
 
 // for timing it will calculate the time and save it previously for future
-const Course = mongoose.model.Course || mongoose.model("Course", courseSchema);
+const Course = mongoose.models.Course || mongoose.model("Course", courseSchema);
 export default Course;
