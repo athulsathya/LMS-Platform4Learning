@@ -13,7 +13,7 @@ import {
   ChevronDown,
   ArrowRight,
   Award,
-  CheckCircle, Circle, 
+  CheckCircle, Circle, Sparkles 
 } from "lucide-react";
 
 const fmtMinutes = (mins) => {
