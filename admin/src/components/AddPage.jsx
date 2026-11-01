@@ -14,6 +14,9 @@ import {
   Upload,
   Video,
   Plus,
+  ChevronUp,
+  X,
+  ChevronDown,
 } from "lucide-react";
 
 function AddPage() {
@@ -1159,7 +1162,7 @@ function AddPage() {
                         type="number"
                         name="duration.hours"
                         value={currentLecture.duration.hours}
-                        onChange={handleChapterChange}
+                        onChange={handleLectureChange}
                         placeholder="Hours"
                         min="0"
                         className={addPageStyles.input}
@@ -1174,7 +1177,7 @@ function AddPage() {
                         type="number"
                         name="duration.minutes"
                         value={currentLecture.duration.minutes}
-                        onChange={handleChapterChange}
+                        onChange={handleLectureChange}
                         placeholder="Minutes"
                         min="0"
                         max="59"

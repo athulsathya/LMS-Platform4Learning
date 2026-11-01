@@ -1,4 +1,6 @@
+
 import React, { useEffect, useState } from "react";
+
 import { dashboardStyles } from "../assets/dummyStylesAd";
 
 import {
@@ -13,59 +15,40 @@ import {
 function DashboardPage() {
   const API_BASE = "http://localhost:4000";
 
-  const fmtCurrency = (n) => {
-    if (n == null) return "₹0";
-
-    const num = Number(n);
-
-    if (Number.isNaN(num)) return "₹0";
-
-    return `₹${num}`;
-  };
-
   const [searchTerm, setSearchTerm] = useState("");
   const [statsData, setStatsData] = useState(null);
   const [coursesData, setCoursesData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
 
-  const iconMap = {
-    Users,
-    ShoppingCart,
-    BookMarked,
-    BadgeIndianRupee,
+  const fmtCurrency = (n) => {
+    const num = Number(n);
+    return Number.isFinite(num) ? `₹${num}` : "₹0";
   };
 
-  const buildStats = (backendStats) => {
-    const totalBookings = backendStats?.totalBookings ?? 0;
-    const totalRevenue = backendStats?.totalRevenue ?? 0;
-    const bookingsLast7Days = backendStats?.bookingsLast7Days ?? 0;
-    const topCourses = backendStats?.topCourses ?? [];
-
+  const buildStats = (backendStats = {}) => {
     return [
       {
         title: "Total Bookings",
-        value: totalBookings,
-        icon: iconMap.Users,
-        color: "indigo",
+        value: backendStats.totalBookings ?? 0,
+        icon: Users,
       },
       {
         title: "Revenue",
-        value: fmtCurrency(totalRevenue),
-        icon: iconMap.BadgeIndianRupee,
-        color: "green",
+        value: fmtCurrency(backendStats.totalRevenue),
+        icon: BadgeIndianRupee,
       },
       {
         title: "Bookings (7d)",
-        value: bookingsLast7Days,
-        icon: iconMap.ShoppingCart,
-        color: "yellow",
+        value: backendStats.bookingsLast7Days ?? 0,
+        icon: ShoppingCart,
       },
       {
         title: "Top Courses",
-        value: topCourses.length || 0,
-        icon: iconMap.BookMarked,
-        color: "purple",
+        value: Array.isArray(backendStats.topCourses)
+          ? backendStats.topCourses.length
+          : 0,
+        icon: BookMarked,
       },
     ];
   };
@@ -73,149 +56,200 @@ function DashboardPage() {
   useEffect(() => {
     let mounted = true;
 
-    setLoading(true);
-    setError(null);
+    const fetchData = async () => {
+      setLoading(true);
+      setError("");
 
-    const fetchStats = () =>
-      fetch(`${API_BASE}/api/booking/stats`)
-        .then((r) => {
-          if (!r.ok) throw new Error("Failed to fetch stats");
-          return r.json();
-        })
-        .then((j) =>
-          j.success ? j.stats : Promise.reject(j.message || "Stats error"),
-        );
+      try {
+        // Fetch courses
+        const coursesResponse = await fetch(`${API_BASE}/api/course`);
 
-    const fetchCourses = () =>
-      fetch(`${API_BASE}/api/course`)
-        .then((r) => {
-          if (!r.ok) throw new Error("Failed to fetch courses");
-          return r.json();
-        })
-        .then((j) =>
-          j.success ? j.courses : Promise.reject(j.message || "Course error"),
-        );
+        if (!coursesResponse.ok) {
+          throw new Error(
+            `Course API failed: ${coursesResponse.status}`
+          );
+        }
 
-    Promise.all([fetchStats(), fetchCourses()])
-      .then(([stats, courses]) => {
+        const coursesResult = await coursesResponse.json();
+
+        console.log("Courses API response:", coursesResult);
+
+        // Support different backend response structures
+        const courses = Array.isArray(coursesResult)
+          ? coursesResult
+          : coursesResult.courses ||
+            coursesResult.data ||
+            coursesResult.allCourses ||
+            [];
+
+        if (!Array.isArray(courses)) {
+          throw new Error("Invalid courses response from backend");
+        }
+
+        // Fetch statistics separately
+        let stats = {};
+
+        try {
+          const statsResponse = await fetch(
+            `${API_BASE}/api/booking/stats`
+          );
+
+          if (statsResponse.ok) {
+            const statsResult = await statsResponse.json();
+
+            stats =
+              statsResult.stats ||
+              statsResult.data ||
+              statsResult ||
+              {};
+          }
+        } catch (statsError) {
+          console.error("Stats API error:", statsError);
+        }
+
         if (!mounted) return;
 
+        // Prepare top course statistics
         const topLookup = {};
 
-        Array.isArray(stats?.topCourses) &&
-          stats.topCourses.forEach((t) => {
-            if (!t) return;
+        const topCourses = Array.isArray(stats.topCourses)
+          ? stats.topCourses
+          : [];
 
-            const name = t.courseName || "";
+        topCourses.forEach((item) => {
+          if (!item) return;
 
-            topLookup[name] = {
-              purchases: Number(t.count || 0),
-              revenue: Number(t.revenue || 0),
-            };
-          });
+          const name = item.courseName || item.name || "";
 
-        const mapped = (courses || []).map((c) => {
-          const id = c._id ?? c.id ?? c.courseId ?? "";
-          const name = c.name ?? c.title ?? "Untitled Course";
-
-          const image = c.image || c.thumbnail || c.courseImage || "";
-
-          const instructor = c.teacher ?? c.instructor ?? "Unknown";
-
-          const metrics = topLookup[name] || {
-            purchases: 0,
-            revenue: 0,
+          topLookup[name] = {
+            purchases: Number(item.count || 0),
+            revenue: Number(item.revenue || 0),
           };
+        });
 
-          const students = metrics.purchases || c.students || 0;
+        // Map course data
+        const mappedCourses = courses.map((course, index) => {
+          const id =
+            course._id ||
+            course.id ||
+            course.courseId ||
+            `course-${index}`;
 
-          const purchases = metrics.purchases || c.purchases || 0;
+          const name =
+            course.name ||
+            course.title ||
+            course.courseName ||
+            "Untitled Course";
 
-          const earnings = metrics.revenue || c.earnings || 0;
+          const image =
+            course.image ||
+            course.thumbnail ||
+            course.courseImage ||
+            course.imageUrl ||
+            "";
 
-          let priceDisplay = "Free";
+          const instructor =
+            course.teacher?.name ||
+            course.teacher ||
+            course.instructor?.name ||
+            course.instructor ||
+            course.createdBy?.name ||
+            "Unknown";
 
-          if (c.price && (c.price.sale != null || c.price.original != null)) {
-            const sale = c.price.sale != null ? Number(c.price.sale) : null;
+          const metrics = topLookup[name] || {};
 
-            const orig =
-              c.price.original != null ? Number(c.price.original) : null;
+          const students =
+            metrics.purchases ??
+            course.students ??
+            course.totalStudents ??
+            0;
 
-            priceDisplay =
-              sale != null
-                ? fmtCurrency(sale)
-                : orig != null
-                  ? fmtCurrency(orig)
-                  : "Free";
-          } else if (c.pricingType && c.pricingType !== "free") {
-            priceDisplay = "₹0";
+          const purchases =
+            metrics.purchases ??
+            course.purchases ??
+            course.totalPurchases ??
+            0;
+
+          const earnings =
+            metrics.revenue ??
+            course.earnings ??
+            course.revenue ??
+            0;
+
+          let price = "Free";
+
+          if (
+            typeof course.price === "object" &&
+            course.price !== null
+          ) {
+            const sale = course.price.sale;
+            const original = course.price.original;
+
+            if (sale != null) {
+              price = fmtCurrency(sale);
+            } else if (original != null) {
+              price = fmtCurrency(original);
+            }
+          } else if (course.price != null) {
+            price =
+              Number(course.price) === 0
+                ? "Free"
+                : fmtCurrency(course.price);
           }
 
           return {
             id,
-            image,
             name,
+            image,
             instructor,
             students,
-            price: priceDisplay,
+            price,
             purchases,
             earnings: fmtCurrency(earnings),
           };
         });
 
+        setCoursesData(mappedCourses);
         setStatsData(buildStats(stats));
-        setCoursesData(mapped);
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("Dashboard fetch error:", err);
 
         if (mounted) {
-          setError(String(err) || "Failed to load dashboard data");
+          setError(err.message || "Failed to load dashboard data");
         }
-      })
-      .finally(() => {
-        if (mounted) setLoading(false);
-      });
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchData();
 
     return () => {
       mounted = false;
     };
   }, []);
 
-  const stats = statsData || [
-    {
-      title: "Total Bookings",
-      value: 0,
-      icon: iconMap.Users,
-      color: "indigo",
-    },
-    {
-      title: "Revenue",
-      value: "₹0",
-      icon: iconMap.BadgeIndianRupee,
-      color: "green",
-    },
-    {
-      title: "Bookings (7d)",
-      value: 0,
-      icon: iconMap.ShoppingCart,
-      color: "yellow",
-    },
-    {
-      title: "Top Courses",
-      value: 0,
-      icon: iconMap.BookMarked,
-      color: "purple",
-    },
-  ];
+  const stats = statsData || buildStats();
 
-  const filteredCourses = coursesData.filter(
-    (course) =>
-      course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (course.instructor || "")
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()),
-  );
+  // Fix for statIconContainer:
+  // Supports both function and string definitions in your style file.
+  const statIconContainerClass =
+    typeof dashboardStyles.statIconContainer === "function"
+      ? dashboardStyles.statIconContainer("bg-indigo-500")
+      : dashboardStyles.statIconContainer ||
+        "p-3 rounded-full text-white bg-indigo-500";
+
+  // Search filtering
+  const filteredCourses = coursesData.filter((course) => {
+    const search = searchTerm.toLowerCase();
+
+    return (
+      course.name.toLowerCase().includes(search) ||
+      String(course.instructor).toLowerCase().includes(search)
+    );
+  });
 
   return (
     <div className={dashboardStyles.pageContainer}>
@@ -223,15 +257,17 @@ function DashboardPage() {
 
       <div className={dashboardStyles.contentContainer}>
         {/* Header */}
-
         <div className={dashboardStyles.headerContainer}>
-          <h1 className={dashboardStyles.headerTitle}>Dashboard Overview</h1>
+          <h1 className={dashboardStyles.headerTitle}>
+            Dashboard Overview
+          </h1>
 
           <p className={dashboardStyles.headerSubtitle}>
-            Welcome Back! Here's whats Happening with your courses today.
+            Welcome Back! Here's what's happening with your courses today.
           </p>
         </div>
 
+        {/* Error */}
         {error && (
           <div className={dashboardStyles.errorBanner} role="alert">
             {error}
@@ -239,7 +275,6 @@ function DashboardPage() {
         )}
 
         {/* Stats Section */}
-
         <div className={dashboardStyles.statsGrid}>
           {stats.map((stat, index) => {
             const Icon = stat.icon || Users;
@@ -248,18 +283,20 @@ function DashboardPage() {
               <div
                 key={stat.title}
                 className={dashboardStyles.statCard}
-                style={{
-                  animationDelay: `${index * 100}ms`,
-                }}
+                style={{ animationDelay: `${index * 100}ms` }}
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className={dashboardStyles.statTitle}>{stat.title}</p>
+                    <p className={dashboardStyles.statTitle}>
+                      {stat.title}
+                    </p>
 
-                    <p className={dashboardStyles.statValue}>{stat.value}</p>
+                    <p className={dashboardStyles.statValue}>
+                      {stat.value}
+                    </p>
                   </div>
 
-                  <div className={dashboardStyles.statIconContainer}>
+                  <div className={statIconContainerClass}>
                     <Icon className={dashboardStyles.statIcon} />
                   </div>
                 </div>
@@ -269,7 +306,6 @@ function DashboardPage() {
         </div>
 
         {/* Courses Section */}
-
         <div className={dashboardStyles.coursesContainer}>
           <div className={dashboardStyles.coursesHeader}>
             <div className={dashboardStyles.coursesTitleContainer}>
@@ -293,28 +329,37 @@ function DashboardPage() {
             </div>
           </div>
 
-          {/* Table */}
-
+          {/* Courses Table */}
           <div className={dashboardStyles.tableContainer}>
             <table className={dashboardStyles.table}>
               <thead className={dashboardStyles.tableHead}>
                 <tr>
-                  <th className={dashboardStyles.tableHeader}>Course</th>
+                  <th className={dashboardStyles.tableHeader}>
+                    Course
+                  </th>
 
-                  <th className={dashboardStyles.tableHeader}>Students</th>
+                  <th className={dashboardStyles.tableHeader}>
+                    Students
+                  </th>
 
-                  <th className={dashboardStyles.tableHeader}>Price</th>
+                  <th className={dashboardStyles.tableHeader}>
+                    Price
+                  </th>
 
-                  <th className={dashboardStyles.tableHeader}>Purchases</th>
+                  <th className={dashboardStyles.tableHeader}>
+                    Purchases
+                  </th>
 
-                  <th className={dashboardStyles.tableHeader}>Earnings</th>
+                  <th className={dashboardStyles.tableHeader}>
+                    Earnings
+                  </th>
                 </tr>
               </thead>
 
               <tbody className={dashboardStyles.tableBody}>
                 {filteredCourses.map((course, index) => (
                   <tr
-                    key={course.id || index}
+                    key={course.id}
                     className={dashboardStyles.tableRow}
                     style={{
                       animationDelay: `${index * 50 + 400}ms`,
@@ -322,14 +367,22 @@ function DashboardPage() {
                   >
                     <td className="px-4 sm:px-6 sm:py-4">
                       <div className="flex items-center gap-3">
-                        <img
-                          src={course.image}
-                          alt={course.name}
-                          className={dashboardStyles.courseImage}
-                        />
+                        {course.image ? (
+                          <img
+                            src={course.image}
+                            alt={course.name}
+                            className={dashboardStyles.courseImage}
+                          />
+                        ) : (
+                          <div className="w-16 h-12 bg-gray-200 rounded flex items-center justify-center">
+                            <BookOpenText className="text-gray-500" />
+                          </div>
+                        )}
 
                         <div>
-                          <p className="font-semibold">{course.name}</p>
+                          <p className="font-semibold">
+                            {course.name}
+                          </p>
 
                           <p className="text-sm text-gray-500">
                             {course.instructor}
@@ -338,34 +391,50 @@ function DashboardPage() {
                       </div>
                     </td>
 
-                    <td className="px-4 sm:px-6 sm:py-4">{course.students}</td>
+                    <td className="px-4 sm:px-6 sm:py-4">
+                      {course.students}
+                    </td>
 
-                    <td className="px-4 sm:px-6 sm:py-4">{course.price}</td>
+                    <td className="px-4 sm:px-6 sm:py-4">
+                      {course.price}
+                    </td>
 
-                    <td className="px-4 sm:px-6 sm:py-4">{course.purchases}</td>
+                    <td className="px-4 sm:px-6 sm:py-4">
+                      {course.purchases}
+                    </td>
 
-                    <td className="px-4 sm:px-6 sm:py-4">{course.earnings}</td>
+                    <td className="px-4 sm:px-6 sm:py-4">
+                      {course.earnings}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            {filteredCourses.length === 0 && !loading && (
+
+            {/* Loading */}
+            {loading && (
+              <div className={dashboardStyles.loadingOverlay}>
+                <div className={dashboardStyles.loadingSpinner}></div>
+              </div>
+            )}
+
+            {/* Empty State */}
+            {!loading && filteredCourses.length === 0 && (
               <div className={dashboardStyles.emptyState}>
                 <Search className={dashboardStyles.emptyIcon} />
+
                 <p className={dashboardStyles.emptyText}>
-                  No Courses found matching your search
+                  {coursesData.length === 0
+                    ? "No courses available"
+                    : "No courses found matching your search"}
                 </p>
+
                 <button
                   onClick={() => setSearchTerm("")}
                   className={dashboardStyles.clearButton}
                 >
                   Clear search
                 </button>
-              </div>
-            )}
-            {loading && (
-              <div className={dashboardStyles.loadingOverlay}>
-                <div className={dashboardStyles.loadingSpinner}></div>
               </div>
             )}
           </div>
