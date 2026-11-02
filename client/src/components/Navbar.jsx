@@ -4,16 +4,25 @@ import logo from "../assets/logo.png";
 import {
   BookMarked,
   BookOpen,
+  BookOpenText,
   Contact,
   Home,
   Menu,
   Users,
   X,
 } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { href, NavLink } from "react-router-dom";
 import { useAuth, useClerk, UserButton, useUser } from "@clerk/react";
 
 function Navbar() {
+  const baseNav = [
+    { name: "Home", icon: Home, href: "/" },
+    { name: "Courses", icon: BookOpen, href: "/courses" },
+    { name: "About", icon: BookMarked, href: "/about" },
+    { name: "Faculty", icon: Users, href: "/faculty" },
+    { name: "Contact", icon: Contact, href: "/contact" },
+  ];
+
   // for clerk
   const { openSignUp } = useClerk();
   const { isSignedIn } = useUser();
@@ -28,6 +37,13 @@ function Navbar() {
 
   const menuRef = useRef(null);
   const isLoggedIn = isSignedIn && Boolean(localStorage.getItem("token"));
+
+  const navItems = isSignedIn
+    ? [
+        ...baseNav,
+        { name: "My Course", icon: BookOpenText, href: "/mycourses" },
+      ]
+    : baseNav;
 
   // fetch token
   useEffect(() => {
@@ -88,14 +104,6 @@ function Navbar() {
     if (isOpen) document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
-
-  const navItems = [
-    { name: "Home", icon: Home, href: "/" },
-    { name: "Courses", icon: BookOpen, href: "/courses" },
-    { name: "About", icon: BookMarked, href: "/about" },
-    { name: "Faculty", icon: Users, href: "/faculty" },
-    { name: "Contact", icon: Contact, href: "/contact" },
-  ];
 
   const desktopLinkClass = (isActive) =>
     `${navbarStyles.desktopNavItem} ${

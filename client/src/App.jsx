@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 
@@ -10,6 +9,7 @@ import Courses from "./pages/Courses";
 import CourseDetailPageHome from "./pages/CourseDetailPageHome";
 import CourseDetailPage from "./pages/CourseDetailPage";
 import { ArrowUp } from "lucide-react";
+import MyCoursesPage from "./pages/MyCoursesPage";
 
 // To protect the route
 const ProtectedRoute = ({ children }) => {
@@ -96,14 +96,11 @@ const App = () => {
 
       <Routes>
         <Route path="/" element={<Home />} />
-
         <Route path="/about" element={<About />} />
-
         <Route path="/contact" element={<Contact />} />
-
         <Route path="/faculty" element={<Faculty />} />
-
         <Route path="/courses" element={<Courses />} />
+        <Route path="/mycourses" element={<MyCoursesPage />} />
 
         {/* Navbar Courses -> CourseDetailPage */}
         <Route
