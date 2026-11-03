@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 function DashboardPage() {
-  const API_BASE = "https://lms-platform4-learningbackend.vercel.app/api";
+  const API_BASE = "https://lms-platform4-learningbackend.vercel.app";
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statsData, setStatsData] = useState(null);

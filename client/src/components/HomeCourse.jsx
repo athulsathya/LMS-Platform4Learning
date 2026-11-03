@@ -6,7 +6,7 @@ import { toast, Slide, ToastContainer } from "react-toastify";
 import { useAuth, useUser } from "@clerk/react";
 
 function HomeCourse() {
-  const API_BASE = "https://lms-platform4-learningbackend.vercel.app/api";
+  const API_BASE = "https://lms-platform4-learningbackend.vercel.app";
 
   const navigate = useNavigate();
 

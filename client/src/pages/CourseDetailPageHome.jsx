@@ -24,7 +24,7 @@ import {
 
 import { useUser, useAuth } from "@clerk/react";
 
-const API_BASE = "https://lms-platform4-learningbackend.vercel.app/api";
+const API_BASE = "https://lms-platform4-learningbackend.vercel.app";
 
 const fmtMinutes = (mins) => {
   const h = Math.floor((mins || 0) / 60);

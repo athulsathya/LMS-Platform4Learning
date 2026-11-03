@@ -19,7 +19,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 
-const API_BASE = "https://lms-platform4-learningbackend.vercel.app/api";
+const API_BASE = "https://lms-platform4-learningbackend.vercel.app";
 
 // formatDuration accepts either {hours, minutes} or (hours, minutes)
 const formatDuration = (a, b) => {

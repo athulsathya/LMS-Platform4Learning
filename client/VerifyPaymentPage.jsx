@@ -3,7 +3,7 @@ import { useAuth } from "@clerk/react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 
-const API_BASE = "https://lms-platform4-learningbackend.vercel.app/api";
+const API_BASE = "https://lms-platform4-learningbackend.vercel.app";
 
 function VerifyPaymentPage() {
   const location = useLocation();

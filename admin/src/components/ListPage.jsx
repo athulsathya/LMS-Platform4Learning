@@ -20,7 +20,7 @@ function ListPage() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const API_BASE = "https://lms-platform4-learningbackend.vercel.app/api";
+  const API_BASE = "https://lms-platform4-learningbackend.vercel.app";
 
   // build image url
   const getImageUrl = (imagePath) => {
