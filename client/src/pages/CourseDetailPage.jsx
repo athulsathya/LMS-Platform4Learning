@@ -1210,7 +1210,7 @@ const CourseDetailPage = () => {
         </div>
       </div>
 
-      <style jsx>{courseDetailStyles.animations}</style>
+      <style >{courseDetailStyles.animations}</style>
     </div>
   );
 };

@@ -1221,7 +1221,7 @@ const CourseDetail = () => {
         </div>
       </div>
 
-      <style jsx>{courseDetailCustomStyles}</style>
+      <style >{courseDetailCustomStyles}</style>
     </div>
   );
 };

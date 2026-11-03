@@ -57,9 +57,7 @@ export const getBooking = async (req, res) => {
     } = req.query;
 
     const limit = Math.min(200, Math.max(1, parseInt(limitRaw, 10) || 50));
-
     const page = Math.max(1, parseInt(pageRaw, 10) || 1);
-
     const skip = (page - 1) * limit;
 
     const filter = {};
@@ -276,9 +274,9 @@ export const createBooking = async (req, res) => {
 
     let session;
 
+    // Create Stripe Checkout Session
     try {
       session = await stripe.checkout.sessions.create({
-        payment_method_types: ["card"],
         mode: "payment",
 
         customer_email: email || undefined,
@@ -318,6 +316,7 @@ export const createBooking = async (req, res) => {
       });
     }
 
+    // Save booking in MongoDB
     try {
       const booking = await Booking.create({
         ...basePayload,
@@ -505,7 +504,6 @@ export const getStats = async (req, res) => {
     const totalRevenue = totalRevenueAgg[0]?.total || 0;
 
     const sevenDaysAgo = new Date();
-
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     const bookingsLast7Days = await Booking.countDocuments({
