@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Play, Star } from "lucide-react";
 
-const API_BASE = "http://localhost:4000";
+const API_BASE = "https://lms-platform4-learningbackend.vercel.app/api";
 
 function MyCourse() {
   const navigate = useNavigate();

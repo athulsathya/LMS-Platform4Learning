@@ -19,7 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
     origin: [
-      process.env.FRONTEND_URL || "http://localhost:5173",
+      process.env.FRONTEND_URL || "https://lms-platform4-learningfrontend.vercel.app/api",
       process.env.ADMIN_URL || "http://localhost:5174",
     ],
     credentials: true,
