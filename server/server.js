@@ -6,21 +6,23 @@ import connectDb from "./config/db.js";
 import courseRouter from "./routes/courseRouter.js";
 import bookingRouter from "./routes/bookingRouter.js";
 
-const app = express();
-const port = 4000;
-
 // LOAD .env
 dotenv.config();
 
-// MIDDLEWARE
-app.use(cors({
-  origin:['http://localhost:5173','http://localhost:5174'],
-  credentials:true,
-}));
-
+const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// MIDDLEWARE
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "http://localhost:5174"],
+    credentials: true,
+  }),
+);
+
+connectDb();
 
 app.use(clerkMiddleware());
 
@@ -35,7 +37,6 @@ app.get("/", (req, res) => {
   res.send("LMS Backend is running");
 });
 
-app.listen(port, () => {
-  connectDb();
-  console.log(`Server is running on http://localhost:${port}`);
+app.listen(process.env.PORT, () => {
+  console.log(`Server is running on http://localhost:${process.env.PORT}`);
 });
