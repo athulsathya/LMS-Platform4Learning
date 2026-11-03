@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 
 function BookingPage() {
-  const API_BASE = "http://localhost:4000";
+  const API_BASE = "https://lms-platform4-learningbackend.vercel.app/api";
 
   const [searchTerm, setSearchTerm] = useState("");
   const [bookings, setBookings] = useState([]);
