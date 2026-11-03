@@ -1,12 +1,13 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
 import { clerkMiddleware } from "@clerk/express";
+
 import connectDb from "./config/db.js";
 import courseRouter from "./routes/courseRouter.js";
 import bookingRouter from "./routes/bookingRouter.js";
 
-// LOAD .env
 dotenv.config();
 
 const app = express();
@@ -14,29 +15,44 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// MIDDLEWARE
+// CORS
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: [
+      process.env.FRONTEND_URL || "http://localhost:5173",
+      process.env.ADMIN_URL || "http://localhost:5174",
+    ],
     credentials: true,
   }),
 );
+
+// Serve uploaded files
+const uploadDir = process.env.VERCEL
+  ? "/tmp/uploads"
+  : path.join(process.cwd(), "uploads");
+
+app.use("/uploads", express.static(uploadDir));
+
+// Database connection
 
 connectDb();
 
 app.use(clerkMiddleware());
 
-app.use("/uploads", express.static("uploads"));
-
-// ROUTE
+// Routes
 app.use("/api/course", courseRouter);
 app.use("/api/booking", bookingRouter);
 
-// APP PORT AND LISTEN
 app.get("/", (req, res) => {
   res.send("LMS Backend is running");
 });
 
-app.listen(process.env.PORT, () => {
-  console.log(`Server is running on http://localhost:${process.env.PORT}`);
-});
+// Start server locally, but not on Vercel
+if (!process.env.VERCEL) {
+  app.listen(process.env.PORT || 4000, () => {
+    console.log(`Server running on port ${process.env.PORT || 4000}`);
+  });
+}
+
+// Vercel serverless export
+export default app;

@@ -13,8 +13,10 @@ import {
   rateCourse,
 } from "../controllers/courseController.js";
 
-// Create uploads folder automatically
-const uploadDir = path.join(process.cwd(), "uploads");
+// Create uploads folder
+const uploadDir = process.env.VERCEL
+  ? "/tmp/uploads"
+  : path.join(process.cwd(), "uploads");
 
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
@@ -27,7 +29,9 @@ const storage = multer.diskStorage({
   },
 
   filename: (req, file, cb) => {
-    const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const unique =
+      Date.now() + "-" + Math.round(Math.random() * 1e9);
+
     const ext = path.extname(file.originalname).trim();
 
     cb(null, `course-${unique}${ext}`);
